@@ -1,0 +1,440 @@
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Жим 200">
+<meta name="theme-color" content="#B5402C">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Жим 200</title>
+<style>:root { --bg: #F7F5F2; --card: #fff; --ink: #1f1b18; --muted: #6f6660; --acc: #B5402C; --line: #e4ddd6;
+  --ok: #e3f1e4; --low: #fbf0d9; --high: #f8dcd6; color-scheme: light; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #171412; --card: #221e1b; --ink: #eee7e1; --muted: #a39990; --acc: #e0694f; --line: #3a332e;
+    --ok: #1f3a24; --low: #3d321a; --high: #4a231c; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0); }
+header { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding: 10px 14px 0; }
+h1 { font-size: 18px; margin: 0 0 8px; }
+nav { display: flex; gap: 4px; overflow-x: auto; }
+nav button { border: 0; background: none; padding: 8px 10px; font-size: 15px; color: var(--muted); border-bottom: 3px solid transparent; }
+nav button.on { color: var(--acc); border-bottom-color: var(--acc); font-weight: 600; }
+main { padding: 12px 14px 60px; max-width: 640px; margin: 0 auto; }
+button { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+button.primary { background: var(--acc); color: #fff; border-color: var(--acc); font-weight: 600; }
+button.small { padding: 6px 10px; font-size: 14px; margin-top: 6px; }
+button.x { border: 0; background: none; color: var(--muted); font-size: 20px; padding: 0 6px; float: right; }
+.pick { display: grid; gap: 8px; margin: 10px 0 18px; }
+.pick button { text-align: left; padding: 14px; }
+.sess-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sess-head h2 { font-size: 20px; margin: 4px 0; }
+input, textarea { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+.ex { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin: 12px 0; }
+.ex h3 { margin: 0 0 6px; font-size: 17px; }
+.plan { font-size: 15px; }
+.after { margin-top: 4px; font-size: 14px; color: var(--acc); font-weight: 600; }
+.note { font-size: 13px; color: var(--muted); margin-top: 4px; }
+table.sets { border-collapse: collapse; margin-top: 8px; width: 100%; }
+table.sets th { font-size: 12px; color: var(--muted); font-weight: 500; text-align: left; padding: 2px 4px; }
+table.sets td { padding: 3px 4px; }
+table.sets input:not([type]) , table.sets input[inputmode] { width: 100%; max-width: 110px; font-size: 18px; text-align: center; }
+input[type=checkbox] { width: 26px; height: 26px; accent-color: var(--acc); vertical-align: middle; }
+.holds { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+.chk { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; }
+textarea { width: 100%; min-height: 70px; margin-top: 10px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.muted { color: var(--muted); font-size: 14px; }
+h3.sub { font-size: 16px; margin: 16px 0 6px; }
+ul.facts, ol.facts { margin: 4px 0; padding-left: 20px; }
+ul.facts li, ol.facts li { margin: 3px 0; }
+table.vol { border-collapse: collapse; width: 100%; background: var(--card); border-radius: 12px; overflow: hidden; }
+table.vol th, table.vol td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+table.vol td + td, table.vol th + th { text-align: center; width: 90px; }
+td.ok { background: var(--ok); } td.low { background: var(--low); } td.high { background: var(--high); }
+.scroll { overflow-x: auto; }
+table.coef { border-collapse: collapse; font-size: 13px; }
+table.coef th { vertical-align: bottom; height: 130px; padding: 2px; }
+table.coef th span { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; font-weight: 500; color: var(--muted); }
+table.coef td { border: 1px solid var(--line); padding: 5px 6px; text-align: center; min-width: 32px; }
+table.coef td:first-child { text-align: left; white-space: nowrap; }
+table.coef td.on { background: var(--ok); font-weight: 600; }
+table.coef td:first-child { position: sticky; left: 0; background: var(--card); z-index: 1; }
+</style>
+</head><body>
+<header><h1>Жим 200</h1><nav></nav></header>
+<main></main>
+<script>
+// Данные программы «Жим 200» (решения 2026-09-07 … 2026-09-16).
+// Правишь программу — правь и этот файл, потом `python build/build-zhim-pwa.py`.
+
+// kind: bench — жим A по волнам; reps — подходы вес × повторы; hold — удержание по времени; check — отметка.
+// lo–hi — коридор повторов; все подходы на hi → следующий раз вес + step.
+const EX = {
+  bench:  { kind: 'bench', name: 'Жим лёжа касанием', note: 'Последний повтор каждого подхода — маркер: пауза на груди и «последний шанс».' },
+  bandA:  { kind: 'reps', name: 'Добивка: жим + лента 1', sets: 3, lo: 12, hi: 15, step: 5, start: 100, note: 'Лента 1: +10 кг внизу / +30 вверху. Сыплется ниже 12 — не больше 3 подходов.' },
+  dbA:    { kind: 'reps', name: 'Гантели 30°', sets: 3, lo: 8, hi: 10, step: 5, start: 45, perHand: true, note: 'Вес одной гантели.' },
+  bandC:  { kind: 'reps', name: 'Жим с резиной (лента 1)', sets: 5, minSets: 4, lo: 10, hi: 10, step: 2.5, start: 120, note: '4–5 подходов по 10. Все по 10 — плюс на штанге.' },
+  dbC:    { kind: 'reps', name: 'Гантели 30°', sets: 4, lo: 8, hi: 12, step: 5, start: null, perHand: true, note: 'Вес одной гантели. Когда гантели первые — первый подход тем же весом, что в прошлый раз (датчик груди).' },
+  spanish:{ kind: 'hold', name: 'Испанский присед с резиной', sets: 3, sec: 45, note: 'Разминка и профилактика колена.' },
+  dl:     { kind: 'reps', name: 'Становая тяга', sets: 3, lo: 5, hi: 5, step: 5, start: null, note: 'Запас 2–3 повтора, без отказа. Первая B — подбор рабочего веса.' },
+  hammer: { kind: 'reps', name: 'Рычажная тяга сверху', sets: 3, lo: 8, hi: 12, step: 5, start: null, perArm: true, note: 'Разминка двумя руками, потом каждой рукой. Вес на одну сторону.' },
+  vert:   { kind: 'reps', name: 'Вертикальная тяга через стороны', sets: 4, lo: 8, hi: 12, step: 5, start: null, note: 'На круглую мышцу.' },
+  horiz:  { kind: 'reps', name: 'Горизонтальная тяга к низу груди', sets: 4, lo: 8, hi: 12, step: 5, start: null },
+  rear:   { kind: 'reps', name: 'Задние дельты в тренажёре', sets: 4, lo: 8, hi: 12, step: 5, start: null },
+  stepup: { kind: 'reps', name: 'Тумба одной ногой с гантелями', sets: 3, lo: 8, hi: 12, step: 5, start: null, perHand: true, note: 'Колено над вторым пальцем стопы. Вес одной гантели.' },
+  hip:    { kind: 'reps', name: 'Хип-траст', sets: 3, lo: 8, hi: 12, step: 5, start: null },
+  hyper:  { kind: 'reps', name: 'Гиперэкстензия', sets: 3, lo: 8, hi: 12, step: 5, start: 0, note: 'Всегда последней. Вес в руках, 0 — без веса. Разминка не в счёт.' },
+  plank:  { kind: 'hold', name: 'Боковая планка с подъёмом ноги', sets: 3, sec: '30–45', note: 'На каждую сторону.' },
+  foot:   { kind: 'check', name: 'Короткая стопа', text: '3×10 удержаний по 5–8 с → на одной ноге → с закрытыми глазами' },
+  calf:   { kind: 'check', name: 'Подъём на носки одной ногой', text: '3×15, пятка под контролем' },
+};
+
+const BACK = ['hammer', 'vert', 'horiz', 'rear'];
+
+const SESSIONS = {
+  A: { name: 'A · жим тяжёлый', list: () => ['spanish', 'bench', 'bandA', 'dbA'] },
+  B: { name: 'B · становая + спина', list: () => ['spanish', 'dl', ...BACK, 'hyper'] },
+  C: { name: 'C · жим объёмный', list: (mc) => mc % 2 === 1 ? ['spanish', 'bandC', 'dbC'] : ['spanish', 'dbC', 'bandC'] },
+  D: { name: 'D · спина + ноги', list: () => [...BACK, 'spanish', 'stepup', 'hip', 'hyper'] },
+  H: { name: 'Дома · раз в неделю', list: () => ['plank', 'foot', 'calf'] },
+};
+const ROTATION = ['A', 'B', 'C', 'D'];
+
+// Мышцы и коэффициенты участия 0–1. Больше 0,5 — подход идёт мышце целиком, иначе не считается
+// (решение 2026-09-14). ЧЕРНОВИК разметки — правится во вкладке «Мышцы».
+const MUSCLES = ['Грудь', 'Передняя дельта', 'Трицепс', 'Широчайшие', 'Круглая', 'Трапеция и ромбовидные',
+  'Задняя дельта', 'Бицепс', 'Разгибатели спины', 'Ягодицы', 'Квадрицепс', 'Бицепс бедра'];
+const COEF = {
+  bench:  { 'Грудь': .9, 'Передняя дельта': .7, 'Трицепс': .7 },
+  bandA:  { 'Грудь': .8, 'Передняя дельта': .7, 'Трицепс': .8 },
+  dbA:    { 'Грудь': .9, 'Передняя дельта': .7, 'Трицепс': .3 },
+  bandC:  { 'Грудь': .7, 'Передняя дельта': .7, 'Трицепс': .9 },
+  dbC:    { 'Грудь': .9, 'Передняя дельта': .7, 'Трицепс': .3 },
+  dl:     { 'Разгибатели спины': .9, 'Ягодицы': .8, 'Бицепс бедра': .7, 'Квадрицепс': .6, 'Трапеция и ромбовидные': .6, 'Широчайшие': .4 },
+  hammer: { 'Широчайшие': .9, 'Круглая': .7, 'Бицепс': .6, 'Задняя дельта': .4 },
+  vert:   { 'Широчайшие': .9, 'Круглая': .8, 'Бицепс': .6 },
+  horiz:  { 'Широчайшие': .8, 'Трапеция и ромбовидные': .8, 'Задняя дельта': .6, 'Бицепс': .6 },
+  rear:   { 'Задняя дельта': .9, 'Трапеция и ромбовидные': .6 },
+  stepup: { 'Квадрицепс': .9, 'Ягодицы': .8 },
+  hip:    { 'Ягодицы': .9, 'Бицепс бедра': .4 },
+  hyper:  { 'Разгибатели спины': .9, 'Ягодицы': .6, 'Бицепс бедра': .6 },
+};
+const CORRIDOR = [10, 20]; // подходов на мышцу за микроцикл (CANON.md)
+
+// Жим A: фаза возврата 5×5 +5 за микроцикл; первый незакрытый вес = пятёрки волны 1;
+// волна 5×5 → 4×4 (+5) → 3×3 (+5), следующая волна +2,5; дважды подряд не сделано → минус 5 %.
+const BENCH_START = 145;
+// Что после троек волны N (таблицы макроциклов 1 и 2).
+const WAVE_AFTER = { 2: 'контрольная одна попытка 180', 3: 'проходка 180 → 187,5 → 190–192,5, потом 10 дней разгрузки',
+  5: 'контрольная одна попытка 185', 7: 'контрольная одна попытка 192,5 — вдвое осторожнее', 8: 'проходка 190 → 195 → 200' };
+
+// Факты до появления приложения.
+const SEED = [
+  { id: 's-2026-09-14-A', date: '2026-09-14', type: 'A', ex: [
+    { id: 'bench', sets: [5, 5, 5, 5, 5].map(r => ({ w: 145, r, m: true })) },
+    { id: 'bandA', sets: [15, 14, 13].map(r => ({ w: 100, r })) },
+    { id: 'dbA', sets: [10, 10, 10].map(r => ({ w: 40, r })) },
+  ] },
+];
+
+// ---------- хранилище ----------
+const K = { log: 'zhim.log', coef: 'zhim.coef', draft: 'zhim.draft', seeded: 'zhim.seeded' };
+const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+if (!load(K.seeded, false)) { if (!load(K.log, []).length) save(K.log, SEED); save(K.seeded, true); }
+
+const getLog = () => load(K.log, []).slice().sort((a, b) => (a.date + a.id).localeCompare(b.date + b.id));
+const coef = () => { const o = load(K.coef, {}); const c = JSON.parse(JSON.stringify(COEF)); for (const e in o) c[e] = Object.assign(c[e] || {}, o[e]); return c; };
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const r25 = x => Math.round(x / 2.5) * 2.5;
+const fmt = x => (x === null || x === undefined || x === '') ? '—' : String(x).replace('.', ',');
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const ruDate = s => { const [y, m, d] = s.split('-'); return `${d}.${m}.${y}`; };
+
+// ---------- движок плана (всё считается из журнала) ----------
+function exHistory(log, id) {
+  const out = [];
+  for (const s of log) for (const e of s.ex) if (e.id === id && e.sets.length) out.push({ date: s.date, sets: e.sets });
+  return out;
+}
+
+function benchState(log) {
+  let st = { phase: 'ret', w: BENCH_START, X: 0, idx: 0, wave: 0, fails: 0 };
+  for (const h of exHistory(log, 'bench')) {
+    const reps = st.phase === 'ret' ? 5 : [5, 4, 3][st.idx];
+    const sets = st.phase === 'ret' ? 5 : [5, 4, 3][st.idx];
+    const w = h.sets[0].w;
+    const closed = h.sets.length >= sets && h.sets.every(x => x.r >= reps && x.m);
+    if (st.phase === 'ret') {
+      if (closed) { st.w = w + 5; st.fails = 0; }
+      else { st = { phase: 'wave', X: w, idx: 0, wave: 1, fails: 1 }; }
+    } else {
+      if (closed) {
+        st.fails = 0; st.idx++;
+        if (st.idx === 3) { st.idx = 0; st.wave++; st.X += 2.5; }
+      } else {
+        st.fails++;
+        if (st.fails >= 2) { st.X = r25(st.X - (st.X + 5 * st.idx) * 0.05); st.fails = 0; }
+      }
+    }
+  }
+  if (st.phase === 'ret') return { w: st.w, sets: 5, reps: 5, label: 'Фаза возврата · 5×5, +5 за микроцикл', after: '' };
+  const w = st.X + 5 * st.idx, n = [5, 4, 3][st.idx];
+  const after = st.idx === 2 && WAVE_AFTER[st.wave] ? 'После этой тренировки: ' + WAVE_AFTER[st.wave] : '';
+  return { w, sets: n, reps: n, label: `Волна ${st.wave} · ${n}×${n}` + (st.fails ? ' · повтор веса' : ''), after };
+}
+
+function plan(log, id) {
+  const ex = EX[id];
+  if (id === 'bench') { const b = benchState(log); return { w: b.w, sets: b.sets, lo: b.reps, hi: b.reps, label: b.label, after: b.after }; }
+  if (ex.kind !== 'reps') return { sets: ex.sets };
+  const h = exHistory(log, id);
+  if (!h.length) return { w: ex.start, sets: ex.sets, lo: ex.lo, hi: ex.hi, label: ex.start === null ? 'вес подобрать и вписать' : '' };
+  const last = h[h.length - 1].sets;
+  const w = Math.max(...last.map(x => +x.w || 0));
+  const need = ex.minSets || ex.sets;
+  const top = last.filter(x => (+x.w || 0) === w);
+  const closed = top.length >= need && top.every(x => x.r >= ex.hi);
+  const next = closed ? w + ex.step : w;
+  const label = closed ? `все подходы на ${ex.hi} → +${fmt(ex.step)}` : `прошлый раз: ${last.map(x => x.r).join(' / ')} → вес держим`;
+  return { w: next, sets: ex.sets, lo: ex.lo, hi: ex.hi, label };
+}
+
+function microcycles(log) {
+  const mcs = []; let cur = null;
+  for (const s of log) {
+    if (s.type === 'A' || !cur) { cur = { start: s.date, sessions: [] }; mcs.push(cur); }
+    cur.sessions.push(s);
+  }
+  return mcs;
+}
+const mcNumber = log => log.filter(s => s.type === 'A').length || 1;
+
+function nextType(log) {
+  const gym = log.filter(s => ROTATION.includes(s.type));
+  if (!gym.length) return 'A';
+  return ROTATION[(ROTATION.indexOf(gym[gym.length - 1].type) + 1) % 4];
+}
+
+// ---------- экран «Тренировка» ----------
+let tab = 'today';
+function draft() { return load(K.draft, null); }
+
+function newDraft(type) {
+  const log = getLog();
+  const mc = type === 'A' ? mcNumber(log) + 1 : mcNumber(log);
+  const ids = SESSIONS[type].list(mc);
+  const d = { type, date: today(), ex: {} };
+  for (const id of ids) {
+    const ex = EX[id], p = plan(log, id);
+    if (ex.kind === 'check') d.ex[id] = [{ done: false }];
+    else if (ex.kind === 'hold') d.ex[id] = Array.from({ length: ex.sets }, () => ({ done: false }));
+    else d.ex[id] = Array.from({ length: p.sets }, () => ({ w: p.w ?? '', r: '', m: false }));
+  }
+  d.order = ids;
+  save(K.draft, d);
+  return d;
+}
+
+function renderToday(main) {
+  const log = getLog();
+  const d = draft();
+  if (!d) {
+    const nt = nextType(log);
+    main.innerHTML = `<p class="muted">Следующая по кругу: <b>${esc(SESSIONS[nt].name)}</b></p>
+      <div class="pick">${Object.keys(SESSIONS).map(t => `<button class="${t === nt ? 'primary' : ''}" data-start="${t}">${esc(SESSIONS[t].name)}</button>`).join('')}</div>
+      ${lastSummary(log)}`;
+    main.querySelectorAll('[data-start]').forEach(b => b.onclick = () => { newDraft(b.dataset.start); render(); });
+    return;
+  }
+  let html = `<div class="sess-head"><h2>${esc(SESSIONS[d.type].name)}</h2>
+    <input type="date" id="d-date" value="${esc(d.date)}"></div>`;
+  for (const id of d.order) {
+    const ex = EX[id], p = plan(log, id), rows = d.ex[id];
+    html += `<section class="ex"><h3>${esc(ex.name)}</h3>`;
+    if (ex.kind === 'reps' || ex.kind === 'bench') {
+      const range = p.lo === p.hi ? p.hi : `${p.lo}–${p.hi}`;
+      html += `<div class="plan">План: <b>${fmt(p.w)}${p.w !== null && p.w !== undefined ? ' кг' : ''}</b> · ${ex.minSets ? ex.minSets + '–' : ''}${p.sets}×${range}${p.label ? ' · ' + esc(p.label) : ''}</div>`;
+      if (p.after) html += `<div class="after">${esc(p.after)}</div>`;
+      if (ex.note) html += `<div class="note">${esc(ex.note)}</div>`;
+      html += `<table class="sets"><tr><th>№</th><th>Вес</th><th>Повт.</th>${ex.kind === 'bench' ? '<th>Маркер</th>' : ''}<th></th></tr>`;
+      rows.forEach((s, i) => {
+        html += `<tr><td>${i + 1}</td>
+          <td><input inputmode="decimal" data-ex="${id}" data-i="${i}" data-f="w" value="${esc(s.w)}"></td>
+          <td><input inputmode="numeric" data-ex="${id}" data-i="${i}" data-f="r" value="${esc(s.r)}" placeholder="${p.hi ?? ''}"></td>
+          ${ex.kind === 'bench' ? `<td><input type="checkbox" data-ex="${id}" data-i="${i}" data-f="m" ${s.m ? 'checked' : ''}></td>` : ''}
+          <td><button class="x" data-rm="${id}" data-i="${i}">×</button></td></tr>`;
+      });
+      html += `</table><button class="small" data-add="${id}">+ подход</button>`;
+    } else if (ex.kind === 'hold') {
+      html += `<div class="plan">${ex.sets} × ${ex.sec} с</div>${ex.note ? `<div class="note">${esc(ex.note)}</div>` : ''}<div class="holds">`;
+      rows.forEach((s, i) => { html += `<label class="chk"><input type="checkbox" data-ex="${id}" data-i="${i}" data-f="done" ${s.done ? 'checked' : ''}> ${i + 1}</label>`; });
+      html += `</div>`;
+    } else {
+      html += `<label class="chk"><input type="checkbox" data-ex="${id}" data-i="0" data-f="done" ${rows[0].done ? 'checked' : ''}> ${esc(ex.text)}</label>`;
+    }
+    html += `</section>`;
+  }
+  html += `<textarea id="d-note" placeholder="Заметка (факты: болезненность груди 0–3, колени пик/работа)">${esc(d.note || '')}</textarea>
+    <div class="actions"><button class="primary" id="d-save">Сохранить тренировку</button><button id="d-cancel">Отменить</button></div>`;
+  main.innerHTML = html;
+
+  main.querySelectorAll('input[data-ex]').forEach(inp => {
+    inp.oninput = inp.onchange = () => {
+      const dd = draft(), s = dd.ex[inp.dataset.ex][+inp.dataset.i], f = inp.dataset.f;
+      s[f] = inp.type === 'checkbox' ? inp.checked : inp.value.replace(',', '.');
+      save(K.draft, dd);
+    };
+  });
+  $('#d-date').onchange = e => { const dd = draft(); dd.date = e.target.value; save(K.draft, dd); };
+  $('#d-note').oninput = e => { const dd = draft(); dd.note = e.target.value; save(K.draft, dd); };
+  main.querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
+    const dd = draft(), rows = dd.ex[b.dataset.add], last = rows[rows.length - 1];
+    rows.push({ w: last ? last.w : '', r: '', m: false }); save(K.draft, dd); render();
+  });
+  main.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+    const dd = draft(); dd.ex[b.dataset.rm].splice(+b.dataset.i, 1); save(K.draft, dd); render();
+  });
+  $('#d-cancel').onclick = () => { if (confirm('Удалить черновик тренировки?')) { localStorage.removeItem(K.draft); render(); } };
+  $('#d-save').onclick = () => {
+    const dd = draft(), sess = { id: 's-' + dd.date + '-' + dd.type + '-' + Date.now().toString(36), date: dd.date, type: dd.type, ex: [], note: dd.note || '' };
+    for (const id of dd.order) {
+      const ex = EX[id], rows = dd.ex[id];
+      if (ex.kind === 'reps' || ex.kind === 'bench') {
+        const sets = rows.filter(s => s.r !== '' && +s.r > 0).map(s => {
+          const o = { w: +s.w || 0, r: +s.r };
+          if (ex.kind === 'bench') o.m = !!s.m;
+          return o;
+        });
+        if (sets.length) sess.ex.push({ id, sets });
+      } else {
+        const done = rows.filter(s => s.done).length;
+        if (done) sess.ex.push({ id, sets: [], done });
+      }
+    }
+    if (!sess.ex.length) { alert('Ни одного подхода не вписано.'); return; }
+    const l = load(K.log, []); l.push(sess); save(K.log, l);
+    localStorage.removeItem(K.draft); tab = 'log'; render();
+  };
+}
+
+function lastSummary(log) {
+  if (!log.length) return '';
+  const s = log[log.length - 1];
+  return `<h3 class="sub">Последняя: ${ruDate(s.date)} · ${esc(SESSIONS[s.type].name)}</h3>${sessBody(s)}`;
+}
+
+function sessBody(s) {
+  return '<ul class="facts">' + s.ex.map(e => {
+    const ex = EX[e.id];
+    if (!e.sets.length) return `<li>${esc(ex.name)}: ✓ ${ex.kind === 'hold' ? e.done + ' из ' + ex.sets : ''}</li>`;
+    const byW = [];
+    for (const x of e.sets) { const g = byW[byW.length - 1]; if (g && g.w === x.w) g.r.push(x.r + (x.m === false ? '✗' : '')); else byW.push({ w: x.w, r: [x.r + (x.m === false ? '✗' : '')] }); }
+    return `<li>${esc(ex.name)}: ${byW.map(g => `<b>${fmt(g.w)}</b> × ${g.r.join(' / ')}`).join(', ')}</li>`;
+  }).join('') + '</ul>' + (s.note ? `<p class="muted">${esc(s.note)}</p>` : '');
+}
+
+// ---------- журнал ----------
+function renderLog(main) {
+  const log = getLog();
+  let html = `<div class="actions"><button id="l-exp">Скопировать журнал</button><button id="l-imp">Вставить журнал</button></div>
+    <p class="muted">«Скопировать» — и пришли текст в чат: запишу в журнал программы. ✗ — маркер не удержан.</p>`;
+  for (const s of log.slice().reverse()) {
+    html += `<section class="ex"><h3>${ruDate(s.date)} · ${esc(SESSIONS[s.type].name)} <button class="x" data-del="${esc(s.id)}">×</button></h3>${sessBody(s)}</section>`;
+  }
+  main.innerHTML = html;
+  main.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    if (!confirm('Удалить тренировку из журнала?')) return;
+    save(K.log, load(K.log, []).filter(s => s.id !== b.dataset.del)); render();
+  });
+  $('#l-exp').onclick = async () => {
+    const t = JSON.stringify(getLog());
+    try { await navigator.clipboard.writeText(t); alert('Скопировано'); } catch (e) { prompt('Скопируй:', t); }
+  };
+  $('#l-imp').onclick = () => {
+    const t = prompt('Вставь журнал (заменит текущий):');
+    if (!t) return;
+    try { const v = JSON.parse(t); if (!Array.isArray(v)) throw 0; save(K.log, v); render(); } catch (e) { alert('Не похоже на журнал'); }
+  };
+}
+
+// ---------- мышцы ----------
+function volume(sessions, c) {
+  const v = Object.fromEntries(MUSCLES.map(m => [m, 0]));
+  for (const s of sessions) for (const e of s.ex) {
+    const k = c[e.id]; if (!k || !e.sets.length) continue;
+    for (const m in k) if (k[m] > 0.5) v[m] += e.sets.length;
+  }
+  return v;
+}
+
+function renderMuscles(main) {
+  const log = getLog(), mcs = microcycles(log), c = coef();
+  const cur = mcs[mcs.length - 1], prev = mcs[mcs.length - 2];
+  const vc = volume(cur ? cur.sessions : [], c), vp = prev ? volume(prev.sessions, c) : null;
+  const cls = n => n < CORRIDOR[0] ? 'low' : n > CORRIDOR[1] ? 'high' : 'ok';
+  let html = `<p class="muted">Рабочие подходы из журнала. Мышце засчитывается подход целиком, если её участие в упражнении больше 0,5. Коридор ${CORRIDOR[0]}–${CORRIDOR[1]} за микроцикл. Микроцикл начинается с тренировки A.</p>
+    <table class="vol"><tr><th>Мышца</th><th>Сейчас${cur ? '<br><small>с ' + ruDate(cur.start) + '</small>' : ''}</th>${vp ? `<th>Прошлый<br><small>с ${ruDate(prev.start)}</small></th>` : ''}</tr>`;
+  for (const m of MUSCLES) html += `<tr><td>${m}</td><td class="${cls(vc[m])}">${vc[m]}</td>${vp ? `<td class="${cls(vp[m])}">${vp[m]}</td>` : ''}</tr>`;
+  html += `</table>
+    <h3 class="sub">Участие мышц (черновик — нажми на число, чтобы поправить)</h3>
+    <div class="scroll"><table class="coef"><tr><th></th>${MUSCLES.map(m => `<th><span>${m}</span></th>`).join('')}</tr>`;
+  for (const id in COEF) {
+    html += `<tr><td>${esc(EX[id].name)}${id.endsWith('A') ? ' (A)' : id.endsWith('C') ? ' (C)' : ''}</td>` +
+      MUSCLES.map(m => { const x = (c[id] || {})[m] || 0; return `<td class="${x > 0.5 ? 'on' : ''}" data-c="${id}" data-m="${m}">${x ? fmt(x) : '·'}</td>`; }).join('') + '</tr>';
+  }
+  html += `</table></div><div class="actions"><button id="c-reset">Вернуть разметку по умолчанию</button></div>`;
+  main.innerHTML = html;
+  main.querySelectorAll('[data-c]').forEach(td => td.onclick = () => {
+    const cur = (coef()[td.dataset.c] || {})[td.dataset.m] || 0;
+    const t = prompt(`${EX[td.dataset.c].name} → ${td.dataset.m}\nУчастие 0–1 (0,5 не ставим):`, String(cur).replace('.', ','));
+    if (t === null) return;
+    const x = Math.max(0, Math.min(1, parseFloat(t.replace(',', '.')) || 0));
+    const o = load(K.coef, {}); (o[td.dataset.c] = o[td.dataset.c] || {})[td.dataset.m] = x; save(K.coef, o); render();
+  });
+  $('#c-reset').onclick = () => { if (confirm('Сбросить свои правки участия?')) { localStorage.removeItem(K.coef); render(); } };
+}
+
+// ---------- план ----------
+function renderPlan(main) {
+  const log = getLog();
+  const b = benchState(log);
+  let html = `<section class="ex"><h3>Жим A сейчас</h3><div class="plan"><b>${fmt(b.w)} кг</b> · ${esc(b.label)}</div>
+    <ul class="facts"><li>Все подходы закрыты и маркер в каждом → следующий шаг.</li><li>Не закрыт хоть один → вес повторяется. Дважды подряд → минус 5 %.</li>
+    <li>Фаза возврата: +5 за микроцикл до первого незакрытого веса. С него — волны 5×5 → 4×4 (+5) → 3×3 (+5), следующая волна +2,5.</li>
+    <li>Между жимовыми не ближе 48 часов. A — понедельник, C — четверг или пятница.</li></ul></section>`;
+  for (const t of ['A', 'B', 'C', 'D', 'H']) {
+    const ids = SESSIONS[t].list(mcNumber(log));
+    html += `<section class="ex"><h3>${esc(SESSIONS[t].name)}</h3><ol class="facts">` + ids.map(id => {
+      const ex = EX[id], p = plan(log, id);
+      if (ex.kind === 'hold') return `<li>${esc(ex.name)} · ${ex.sets}×${ex.sec} с</li>`;
+      if (ex.kind === 'check') return `<li>${esc(ex.name)} · ${esc(ex.text)}</li>`;
+      const range = p.lo === p.hi ? p.hi : `${p.lo}–${p.hi}`;
+      return `<li>${esc(ex.name)} · <b>${fmt(p.w)}</b> · ${ex.minSets ? ex.minSets + '–' : ''}${p.sets}×${range}</li>`;
+    }).join('') + '</ol></section>';
+  }
+  html += `<p class="muted">Блок спины, тумба, хип-траст, гиперэкстензия, добивка, гантели: коридор повторов, все подходы на верхней границе → вес вверх. Гиперэкстензия всегда последней. Объём спины 22 подхода за микроцикл: если в D повторы блока заметно ниже, чем в B, — минус подход в каждом упражнении.</p>`;
+  main.innerHTML = html;
+}
+
+// ---------- каркас ----------
+const TABS = [['today', 'Тренировка'], ['log', 'Журнал'], ['muscles', 'Мышцы'], ['plan', 'План']];
+function render() {
+  $('nav').innerHTML = TABS.map(([k, n]) => `<button class="${k === tab ? 'on' : ''}" data-tab="${k}">${n}</button>`).join('');
+  document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; render(); window.scrollTo(0, 0); });
+  const main = $('main');
+  ({ today: renderToday, log: renderLog, muscles: renderMuscles, plan: renderPlan })[tab](main);
+}
+render();
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+
+</script>
+</body></html>
