@@ -154,7 +154,8 @@ const SEED = [
 
 // ---------- хранилище ----------
 // Префикс ключей из data.js (STORE): приложения на одном домене (github.io) не должны делить журнал.
-const K = { log: STORE + '.log', coef: STORE + '.coef', draft: STORE + '.draft', seeded: STORE + '.seeded' };
+const K = { log: STORE + '.log', coef: STORE + '.coef', draft: STORE + '.draft', seeded: STORE + '.seeded',
+  acked: STORE + '.acked', sendFrom: STORE + '.sendFrom' };
 const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
@@ -334,11 +335,11 @@ function renderToday(main) {
     if (!sess.ex.length) { alert('Ни одного подхода не вписано.'); return; }
     const l = load(K.log, []); l.push(sess); save(K.log, l);
     localStorage.removeItem(K.draft); tab = 'log'; render();
-    sendReport(sess);
+    syncReports();
   };
 }
 
-// ---------- отчёт: сразу после сохранения открывается «Поделиться» → Telegram ----------
+// ---------- отчёт о тренировке ----------
 function reportText(s) {
   const lines = [`${document.title} · ${ruDate(s.date)} · ${SESSIONS[s.type].name}`];
   for (const e of s.ex) {
@@ -352,10 +353,29 @@ function reportText(s) {
   if (s.ex.some(e => e.sets.some(x => x.m === false))) lines.push('✗ — маркер не удержан');
   return lines.join(String.fromCharCode(10));
 }
-async function sendReport(s) {
-  const text = reportText(s);
-  if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
-  try { await navigator.clipboard.writeText(text); alert('Отчёт скопирован — вставь в Telegram'); } catch (e) { prompt('Скопируй отчёт:', text); }
+// Сохранил = отправил. Отчёт уходит на свой сервер (Cloudflare Worker med-reports), ответ 200 = «принято»:
+// отчёт лежит в хранилище, оттуда Claude переносит его в журнал программы. Без сети — досылается при открытии.
+const REPORT = 'https://med-reports.killmear.workers.dev/report', REPORT_KEY = 'pwa-5c83ecfec06ea33b';
+function sendFrom() {
+  let d = load(K.sendFrom, null);
+  if (!d) { const x = new Date(Date.now() - 7 * 864e5); d = x.toISOString().slice(0, 10); save(K.sendFrom, d); }
+  return d;
+}
+async function syncReports() {
+  const acked = new Set(load(K.acked, [])), from = sendFrom();
+  let changed = false;
+  for (const s of getLog()) {
+    if (s.date < from || acked.has(s.id)) continue;
+    try {
+      const r = await fetch(REPORT, { method: 'POST', body: JSON.stringify({ k: REPORT_KEY, profile: STORE, id: s.id, session: s, text: reportText(s) }) });
+      if (r.ok) { acked.add(s.id); changed = true; }
+    } catch (e) {}
+  }
+  if (changed) { save(K.acked, [...acked]); if (tab === 'log') render(); }
+}
+function sendState(s) {
+  if (s.date < sendFrom()) return '';
+  return load(K.acked, []).includes(s.id) ? '<p class="muted">✓ отчёт отправлен</p>' : '<p class="muted">… отчёт отправится, когда будет сеть</p>';
 }
 
 function lastSummary(log) {
@@ -378,16 +398,15 @@ function sessBody(s) {
 function renderLog(main) {
   const log = getLog();
   let html = `<div class="actions"><button id="l-exp">Скопировать журнал</button><button id="l-imp">Вставить журнал</button></div>
-    <p class="muted">После «Сохранить» сразу открывается «Поделиться» — выбери Telegram. Отчёт любой тренировки — кнопкой под ней. ✗ — маркер не удержан.</p>`;
+    <p class="muted">Сохранённая тренировка сама уходит отчётом — под ней видно, отправлен ли. ✗ — маркер не удержан.</p>`;
   for (const s of log.slice().reverse()) {
-    html += `<section class="ex"><h3>${ruDate(s.date)} · ${esc(SESSIONS[s.type].name)} <button class="x" data-del="${esc(s.id)}">×</button></h3>${sessBody(s)}<div class="actions"><button data-send="${esc(s.id)}">Отправить отчёт</button></div></section>`;
+    html += `<section class="ex"><h3>${ruDate(s.date)} · ${esc(SESSIONS[s.type].name)} <button class="x" data-del="${esc(s.id)}">×</button></h3>${sessBody(s)}${sendState(s)}</section>`;
   }
   main.innerHTML = html;
   main.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
     if (!confirm('Удалить тренировку из журнала?')) return;
     save(K.log, load(K.log, []).filter(s => s.id !== b.dataset.del)); render();
   });
-  main.querySelectorAll('[data-send]').forEach(b => b.onclick = () => sendReport(getLog().find(s => s.id === b.dataset.send)));
   $('#l-exp').onclick = async () => {
     const t = JSON.stringify(getLog());
     try { await navigator.clipboard.writeText(t); alert('Скопировано'); } catch (e) { prompt('Скопируй:', t); }
@@ -467,6 +486,8 @@ function render() {
   ({ today: renderToday, log: renderLog, muscles: renderMuscles, plan: renderPlan })[tab](main);
 }
 render();
+syncReports();
+window.addEventListener('online', syncReports);
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 
 </script>
