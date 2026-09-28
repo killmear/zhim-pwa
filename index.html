@@ -281,7 +281,7 @@ function renderToday(main) {
       rows.forEach((s, i) => {
         html += `<tr><td>${i + 1}</td>
           <td><input inputmode="decimal" data-ex="${id}" data-i="${i}" data-f="w" value="${esc(s.w)}"></td>
-          <td><input inputmode="numeric" data-ex="${id}" data-i="${i}" data-f="r" value="${esc(s.r)}"></td>
+          <td><input inputmode="numeric" data-ex="${id}" data-i="${i}" data-f="r" value="${esc(s.r)}" placeholder="${p.hi ?? ''}"></td>
           ${ex.kind === 'bench' ? `<td><input type="checkbox" data-ex="${id}" data-i="${i}" data-f="m" ${s.m ? 'checked' : ''}></td>` : ''}
           <td><button class="x" data-rm="${id}" data-i="${i}">×</button></td></tr>`;
       });
@@ -318,14 +318,19 @@ function renderToday(main) {
   $('#d-cancel').onclick = () => { if (confirm('Удалить черновик тренировки?')) { localStorage.removeItem(K.draft); render(); } };
   $('#d-save').onclick = () => {
     const dd = draft();
-    // Подход с весом, но без повторов — почти всегда забытый ввод (раньше в поле стояла серая подсказка из плана,
-    // и сделанные «по плану» подходы молча терялись). Не сохраняем, пока не дописаны или не удалены (×).
-    const empty = dd.order.filter(id => EX[id].kind === 'reps' || EX[id].kind === 'bench').map(id => {
-      const n = dd.ex[id].map((s, i) => (s.r === '' || !(+s.r > 0)) && s.w !== '' && +s.w > 0 ? i + 1 : 0).filter(Boolean);
-      return n.length ? `${EX[id].name}: подход ${n.join(', ')}` : '';
-    }).filter(Boolean);
-    const NL = String.fromCharCode(10);
-    if (empty.length) { alert('Не вписаны повторы:' + NL + empty.join(NL) + NL + NL + 'Впиши повторы или удали лишний подход (×).'); return; }
+    // Серая цифра в «Повт.» = сделал по плану (Владимир, 28.09): подход с весом и нетронутыми повторами
+    // сохраняется с повторами из подсказки. Раньше такие подходы молча терялись.
+    // Упражнение, где не тронуто ни одно поле, — спросить: по плану или не делал (иначе пропущенное записалось бы сделанным).
+    const lg = getLog();
+    for (const id of dd.order) {
+      if (EX[id].kind !== 'reps' && EX[id].kind !== 'bench') continue;
+      const p = plan(lg, id), rows = dd.ex[id];
+      const touched = rows.some(s => s.r !== '' || s.m || String(s.w) !== String(p.w ?? ''));
+      if (!touched && rows.length && !confirm(`${EX[id].name}: сделал по плану (${rows.length}×${p.hi} на ${fmt(p.w)})?\n\nОК — да, записать. Отмена — не делал.`)) {
+        dd.ex[id] = []; continue;
+      }
+      for (const s of rows) if ((s.r === '' || !(+s.r > 0)) && s.w !== '' && +s.w > 0 && p.hi) s.r = String(p.hi);
+    }
     const sess = { id: 's-' + dd.date + '-' + dd.type + '-' + Date.now().toString(36), date: dd.date, type: dd.type, ex: [], note: dd.note || '' };
     for (const id of dd.order) {
       const ex = EX[id], rows = dd.ex[id];
