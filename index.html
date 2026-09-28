@@ -334,7 +334,28 @@ function renderToday(main) {
     if (!sess.ex.length) { alert('Ни одного подхода не вписано.'); return; }
     const l = load(K.log, []); l.push(sess); save(K.log, l);
     localStorage.removeItem(K.draft); tab = 'log'; render();
+    sendReport(sess);
   };
+}
+
+// ---------- отчёт: сразу после сохранения открывается «Поделиться» → Telegram ----------
+function reportText(s) {
+  const lines = [`${document.title} · ${ruDate(s.date)} · ${SESSIONS[s.type].name}`];
+  for (const e of s.ex) {
+    const ex = EX[e.id];
+    if (!e.sets.length) { lines.push(`${ex.name}: ✓ ${ex.kind === 'hold' ? e.done + ' из ' + ex.sets : ''}`.trim()); continue; }
+    const byW = [];
+    for (const x of e.sets) { const g = byW[byW.length - 1], r = x.r + (x.m === false ? '✗' : ''); if (g && g.w === x.w) g.r.push(r); else byW.push({ w: x.w, r: [r] }); }
+    lines.push(`${ex.name}: ${byW.map(g => `${fmt(g.w)} × ${g.r.join('/')}`).join(', ')}`);
+  }
+  if (s.note) lines.push('Заметка: ' + s.note);
+  if (s.ex.some(e => e.sets.some(x => x.m === false))) lines.push('✗ — маркер не удержан');
+  return lines.join(String.fromCharCode(10));
+}
+async function sendReport(s) {
+  const text = reportText(s);
+  if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(text); alert('Отчёт скопирован — вставь в Telegram'); } catch (e) { prompt('Скопируй отчёт:', text); }
 }
 
 function lastSummary(log) {
@@ -357,15 +378,16 @@ function sessBody(s) {
 function renderLog(main) {
   const log = getLog();
   let html = `<div class="actions"><button id="l-exp">Скопировать журнал</button><button id="l-imp">Вставить журнал</button></div>
-    <p class="muted">«Скопировать» — и пришли текст в чат: запишу в журнал программы. ✗ — маркер не удержан.</p>`;
+    <p class="muted">После «Сохранить» сразу открывается «Поделиться» — выбери Telegram. Отчёт любой тренировки — кнопкой под ней. ✗ — маркер не удержан.</p>`;
   for (const s of log.slice().reverse()) {
-    html += `<section class="ex"><h3>${ruDate(s.date)} · ${esc(SESSIONS[s.type].name)} <button class="x" data-del="${esc(s.id)}">×</button></h3>${sessBody(s)}</section>`;
+    html += `<section class="ex"><h3>${ruDate(s.date)} · ${esc(SESSIONS[s.type].name)} <button class="x" data-del="${esc(s.id)}">×</button></h3>${sessBody(s)}<div class="actions"><button data-send="${esc(s.id)}">Отправить отчёт</button></div></section>`;
   }
   main.innerHTML = html;
   main.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
     if (!confirm('Удалить тренировку из журнала?')) return;
     save(K.log, load(K.log, []).filter(s => s.id !== b.dataset.del)); render();
   });
+  main.querySelectorAll('[data-send]').forEach(b => b.onclick = () => sendReport(getLog().find(s => s.id === b.dataset.send)));
   $('#l-exp').onclick = async () => {
     const t = JSON.stringify(getLog());
     try { await navigator.clipboard.writeText(t); alert('Скопировано'); } catch (e) { prompt('Скопируй:', t); }
